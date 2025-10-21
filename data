@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "BeamNG.drive Mobile",
+    "category": "Simulation",
+    "rating": 4.6,
+    "image": "https://image.winudf.com/v2/image1/Z21lby5iZWFtbmdfaWNvbl8xNjY0NjEwMTQ3XzA5MA/icon.webp?w=280&fakeurl=1&type=.webp",
+    "featuredImage": "https://static-sg.winudf.com/wupload/xy/aprojectadmin/nzIYDtql.png?imageMogr2/thumbnail/384x216",
+    "description": "Realistic, immersive driving game offering near-limitless possibilities.",
+    "featured": true,
+    "size": "1.5 GB",
+    "os": "Android",
+    "mode": "Single Player",
+    "downloads": "1M+",
+    "screenshots": [
+      "https://image.winudf.com/v2/image1/Z21lby5iZWFtbmdfc2NyZWVuXzBfMTY2NDYxMDE0N18wMjQ/screen-0.webp?h=300&fakeurl=1&type=.webp"
+    ],
+    "downloadLink": "#"
+  }
+]
