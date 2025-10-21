@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub Pro - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #EF4444;
+            --primary-dark: #B91C1C;
+            --secondary: #DC2626;
+            --dark: #0F172A;
+            --dark-card: #1E293B;
+            --dark-border: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #1E293B 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-input {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--dark-border);
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+        }
+        
+        .form-input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+        }
+        
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--dark-card);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--dark-border);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: var(--primary);
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            z-index: 100;
+            max-width: 320px;
+            width: calc(100vw - 2rem);
+        }
+        
+        .toast.success {
+            background: var(--success);
+        }
+        
+        .toast.error {
+            background: var(--error);
+        }
+        
+        .toast.warning {
+            background: var(--warning);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .game-list-item {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        @media (min-width: 640px) {
+            .game-list-item {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+        
+        .game-list-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-list-item .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .tab-nav {
+            display: flex;
+            background: var(--dark-card);
+            padding: 0.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--dark-border);
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .mobile-menu-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 280px;
+            background: var(--dark-card);
+            border-right: 1px solid var(--dark-border);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 50;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        
+        .sidebar-overlay.open {
+            display: block;
+        }
+        
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+                position: static;
+                height: auto;
+                width: auto;
+                border-right: none;
+                padding: 0;
+            }
+            
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+            font-weight: 600;
+        }
+        
+        .main-content {
+            width: 100%;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                display: flex;
+                gap: 2rem;
+            }
+            
+            .main-content {
+                flex: 1;
+            }
+        }
+        
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+        
+        .form-grid-1 {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-grid-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 640px) {
+            .form-grid-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .form-grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .form-grid-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--dark-border);
+            color: var(--text-primary);
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--primary);
+        }
+        
+        .checkbox-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .code-output {
+            background: #0F1621;
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-output pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #E2E8F0;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            margin: 0 auto 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            padding-left: 2.5rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .game-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+        
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .game-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .game-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .game-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .featured-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .edit-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .edit-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .delete-btn:hover {
+            background: var(--error);
+            color: white;
+        }
+        
+        .mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        @media (min-width: 768px) {
+            .mobile-header {
+                display: none;
+            }
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        @media (min-width: 768px) {
+            .desktop-only {
+                display: block;
+            }
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .settings-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .setting-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--dark-border);
+        }
+        
+        .setting-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .setting-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--dark-border);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .help-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .help-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .help-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--dark-border);
+            transition: all 0.3s ease;
+        }
+        
+        .help-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .help-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .help-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .admin-user-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--dark-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .admin-details {
+            flex: 1;
+        }
+        
+        .admin-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .admin-role {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--dark-border);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.open .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* GitHub Integration Styles */
+        .github-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--dark-border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .github-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .github-icon {
+            width: 40px;
+            height: 40px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .github-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .github-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .github-btn:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+        
+        .github-btn.primary {
+            background: var(--primary);
+        }
+        
+        .github-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    
+    <!-- Add Admin Modal -->
+    <div id="add-admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Admin</h3>
+                <button class="modal-close" id="close-add-admin-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="add-admin-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="admin-name" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="admin-email" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Role</label>
+                        <select class="form-input" id="admin-role" required>
+                            <option value="Admin">Admin</option>
+                            <option value="Editor">Editor</option>
+                            <option value="Viewer">Viewer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancel-add-admin">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="logo">
+            <i data-lucide="gamepad-2"></i>
+            <span>GameHub Pro</span>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+        </button>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <div class="container max-w-7xl mx-auto">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo desktop-only">
+                <i data-lucide="gamepad-2"></i>
+                <span>GameHub Pro</span>
+            </div>
+            
+            <div class="nav-item active" data-tab="dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard</span>
+            </div>
+            
+            <div class="nav-item" data-tab="add-game">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Game</span>
+            </div>
+            
+            <div class="nav-item" data-tab="manage-games">
+                <i data-lucide="package"></i>
+                <span>Game Library</span>
+            </div>
+            
+            <div class="nav-item" data-tab="github-integration">
+                <i data-lucide="github"></i>
+                <span>GitHub Integration</span>
+            </div>
+            
+            <div class="nav-item" data-tab="settings">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </div>
+            
+            <div class="nav-item" data-tab="help">
+                <i data-lucide="help-circle"></i>
+                <span>Help & Support</span>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="page-header">
+                    <h1 class="page-title">Admin Dashboard</h1>
+                    <p class="page-subtitle">Manage your GameHub Pro website with ease</p>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-games">19</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="featured-games">14</div>
+                        <div class="stat-label">Featured Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-downloads">2.1B+</div>
+                        <div class="stat-label">Total Downloads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-rating">4.6</div>
+                        <div class="stat-label">Avg. Rating</div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="glass-card p-5 sm:p-6 mb-6">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="btn-primary flex-1" data-tab="add-game">
+                            <i data-lucide="plus-circle"></i>
+                            Add New Game
+                        </button>
+                        <button class="btn-secondary flex-1" data-tab="manage-games">
+                            <i data-lucide="package"></i>
+                            Manage Games
+                        </button>
+                        <button class="btn-secondary flex-1" data-tab="github-integration">
+                            <i data-lucide="github"></i>
+                            GitHub Integration
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="glass-card p-5 sm:p-6">
+                    <h2 class="section-title">Recent Activity</h2>
+                    <div class="space-y-4" id="recent-activity">
+                        <!-- Activity items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add Game Tab -->
+            <div id="add-game" class="tab-content">
+                <div class="page-header">
+                    <h1 class="page-title">Add New Game</h1>
+                    <p class="page-subtitle">Fill in the details to add a new game to your website</p>
+                </div>
+                
+                <!-- GitHub Integration Card -->
+                <div class="github-card">
+                    <div class="github-header">
+                        <div class="github-icon">
+                            <i data-lucide="github"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold">GitHub Integration</h3>
+                            <p class="text-slate-400">Generate game code and push to GitHub for easy access</p>
+                        </div>
+                    </div>
+                    <div class="github-buttons">
+                        <button class="github-btn primary" id="generate-github-code">
+                            <i data-lucide="code"></i>
+                            Generate Game Code
+                        </button>
+                        <button class="github-btn" id="view-github-repo">
+                            <i data-lucide="external-link"></i>
+                            View GitHub Repository
+                        </button>
+                    </div>
+                </div>
+                
+                <form id="add-game-form" class="glass-card p-5 sm:p-6 space-y-6">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Basic Information</h3>
+                        <div class="form-grid form-grid-2">
+                            <div>
+                                <label for="title" class="form-label">Game Title</label>
+                                <input type="text" id="title" class="form-input" placeholder="e.g., Subway Surfers" required>
+                                <div class="error-message" id="title-error">Please enter a valid game title</div>
+                            </div>
+                            <div>
+                                <label for="category" class="form-label">Category</label>
+                                <select id="category" class="form-input" required>
+                                    <option value="" disabled selected>-- Choose a category --</option>
+                                    <option value="Action">Action</option>
+                                    <option value="Arcade">Arcade</option>
+                                    <option value="Board">Board</option>
+                                    <option value="Casual">Casual</option>
+                                    <option value="Puzzle">Puzzle</option>
+                                    <option value="RPG">RPG</option>
+                                    <option value="Sandbox">Sandbox</option>
+                                    <option value="Simulation">Simulation</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="Strategy">Strategy</option>
+                                </select>
+                                <div class="error-message" id="category-error">Please select a category</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Details Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Game Details</h3>
+                        <div class="form-grid form-grid-3">
+                            <div>
+                                <label for="os" class="form-label">Platform (OS)</label>
+                                <select id="os" class="form-input" required>
+                                    <option value="Android">Android</option>
+                                    <option value="iOS">iPhone (iOS)</option>
+                                    <option value="PC">PC</option>
+                                </select>
+                                <div class="error-message" id="os-error">Please select a platform</div>
+                            </div>
+                            <div>
+                                <label for="rating" class="form-label">Rating (0.0 - 5.0)</label>
+                                <input type="number" id="rating" class="form-input" min="0" max="5" step="0.1" placeholder="e.g., 4.5" required>
+                                <div class="error-message" id="rating-error">Please enter a valid rating between 0.0 and 5.0</div>
+                            </div>
+                            <div>
+                                <label for="downloads" class="form-label">Downloads Count</label>
+                                <input type="text" id="downloads" class="form-input" placeholder="e.g., 1M+" required>
+                                <div class="error-message" id="downloads-error">Please enter a downloads count</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" class="form-input" rows="3" placeholder="Enter a short game description." required></textarea>
+                            <div class="error-message" id="description-error">Please enter a description</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Media Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Media</h3>
+                        <div class="form-grid form-grid-2">
+                            <div>
+                                <label for="image" class="form-label">Icon Image Link</label>
+                                <input type="url" id="image" class="form-input" placeholder="https://..." required>
+                                <div class="error-message" id="image-error">Please enter a valid image URL</div>
+                            </div>
+                            <div>
+                                <label for="featuredImage" class="form-label">Featured Image Link (Wide)</label>
+                                <input type="url" id="featuredImage" class="form-input" placeholder="https://...">
+                                <div class="error-message" id="featuredImage-error">Please enter a valid featured image URL</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label class="form-label">Screenshots Links</label>
+                            <div class="space-y-3">
+                                <input type="url" id="screenshot1" class="form-input" placeholder="Screenshot Link 1 (Required)" required>
+                                <input type="url" id="screenshot2" class="form-input" placeholder="Screenshot Link 2 (Optional)">
+                                <input type="url" id="screenshot3" class="form-input" placeholder="Screenshot Link 3 (Optional)">
+                                <input type="url" id="screenshot4" class="form-input" placeholder="Screenshot Link 4 (Optional)">
+                                <input type="url" id="screenshot5" class="form-input" placeholder="Screenshot Link 5 (Optional)">
+                            </div>
+                            <div class="error-message" id="screenshots-error">Please enter at least one screenshot URL</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">Additional Information</h3>
+                        <div class="form-grid form-grid-3">
+                            <div>
+                                <label for="size" class="form-label">Game Size</label>
+                                <input type="text" id="size" class="form-input" placeholder="e.g., 250 MB" required>
+                                <div class="error-message" id="size-error">Please enter a game size</div>
+                            </div>
+                            <div>
+                                <label for="mode" class="form-label">Game Mode</label>
+                                <select id="mode" class="form-input" required>
+                                    <option value="" disabled selected>-- Choose a mode --</option>
+                                    <option value="1v1 Battle">1v1 Battle</option>
+                                    <option value="Endless Runner">Endless Runner</option>
+                                    <option value="MMO Strategy">MMO Strategy</option>
+                                    <option value="Multiplayer">Multiplayer</option>
+                                    <option value="Online RPG">Online RPG</option>
+                                    <option value="PvP">PvP</option>
+                                    <option value="Single Player">Single Player</option>
+                                </select>
+                                <div class="error-message" id="mode-error">Please select a game mode</div>
+                            </div>
+                            <div class="flex items-end">
+                                <div class="checkbox-container">
+                                    <input id="featured" type="checkbox">
+                                    <label for="featured" class="checkbox-label">Mark as Featured?</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="downloadLink" class="form-label">Download Link</label>
+                            <input type="url" id="downloadLink" class="form-input" placeholder="https://..." required>
+                            <div class="error-message" id="downloadLink-error">Please enter a valid download URL</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 pt-4">
+                        <button type="submit" class="btn-primary w-full sm:w-auto" id="submit-btn">
+                            <i data-lucide="code"></i>
+                            <span id="submit-text">Generate Game Code</span>
+                        </button>
+                        <button type="reset" class="btn-secondary w-full sm:w-auto">Clear Form</button>
+                    </div>
+                </form>
+
+                <div id="output-section" class="mt-8 hidden">
+                    <h2 class="text-xl font-bold mb-2">Generated Code</h2>
+                    <p class="text-slate-400 mb-4">Code is ready. Click the button to copy, then paste it into your website's JavaScript array.</p>
+                    <div class="code-output">
+                        <pre id="output-code"></pre>
+                        <button id="copy-btn" class="copy-btn">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span id="copy-text">Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manage Games Tab -->
+            <div id="manage-games" class="tab-content">
+                <div class="page-header">
+                    <h1 class="page-title">Game Library</h1>
+                    <p class="page-subtitle">Manage all your games in one place</p>
+                </div>
+                
+                <div class="glass-card p-5 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h2 class="text-xl font-bold">All Games</h2>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                            <div class="search-container w-full sm:w-64">
+                                <i data-lucide="search" class="search-icon w-4 h-4"></i>
+                                <input type="text" id="search-games" class="form-input search-input" placeholder="Search games...">
+                            </div>
+                            <button id="export-btn" class="btn-secondary">
+                                <i data-lucide="download"></i>
+                                Export
+                            </button>
+                            <button id="import-btn" class="btn-secondary">
+                                <i data-lucide="upload"></i>
+                                Import
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="games-list" class="max-h-96 overflow-y-auto pr-2">
+                        <!-- Games will be dynamically loaded here -->
+                    </div>
+                    
+                    <div class="pagination">
+                        <div class="pagination-info" id="games-count">Total: 0 games</div>
+                        <div class="pagination-controls">
+                            <button id="prev-page" class="pagination-btn" disabled>
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                            <span id="page-info" class="pagination-info mx-2">Page 1 of 1</span>
+                            <button id="next-page" class="pagination-btn" disabled>
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- GitHub Integration Tab -->
+            <div id="github-integration" class="tab-content">
+                <div class="page-header">
+                    <h1 class="page-title">GitHub Integration</h1>
+                    <p class="page-subtitle">Manage your GameHub Pro code on GitHub for easy access</p>
+                </div>
+                
+                <div class="glass-card p-5 sm:p-6">
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon">
+                                <i data-lucide="github"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold">GameHub Pro Repository</h3>
+                                <p class="text-slate-400">Access and manage your game data and admin panel on GitHub</p>
+                            </div>
+                        </div>
+                        <div class="github-buttons">
+                            <button class="github-btn primary" id="open-gamehub-repo">
+                                <i data-lucide="external-link"></i>
+                                Open GameHub Repository
+                            </button>
+                            <button class="github-btn" id="open-admin-repo">
+                                <i data-lucide="external-link"></i>
+                                Open Admin Panel Repository
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="github-card">
+                            <h3 class="text-lg font-bold mb-4">Game Data Repository</h3>
+                            <p class="text-slate-400 mb-4">Store and manage your game data in a GitHub repository for easy access from your website.</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Repository URL:</span>
+                                    <code class="text-xs bg-slate-800 px-2 py-1 rounded">https://github.com/elallioui/gamehub-pro-data</code>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">File Path:</span>
+                                    <code class="text-xs bg-slate-800 px-2 py-1 rounded">/games-data.json</code>
+                                </div>
+                            </div>
+                            <button class="github-btn w-full mt-4" id="copy-game-data-url">
+                                <i data-lucide="copy"></i>
+                                Copy Game Data URL
+                            </button>
+                        </div>
+                        
+                        <div class="github-card">
+                            <h3 class="text-lg font-bold mb-4">Admin Panel Repository</h3>
+                            <p class="text-slate-400 mb-4">Host your admin panel on GitHub Pages for easy access and management.</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Repository URL:</span>
+                                    <code class="text-xs bg-slate-800 px-2 py-1 rounded">https://github.com/elallioui/gamehub-pro-admin</code>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Live URL:</span>
+                                    <code class="text-xs bg-slate-800 px-2 py-1 rounded">https://elallioui.github.io/gamehub-pro-admin</code>
+                                </div>
+                            </div>
+                            <button class="github-btn w-full mt-4" id="copy-admin-url">
+                                <i data-lucide="copy"></i>
+                                Copy Admin Panel URL
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="github-card mt-6">
+                        <h3 class="text-lg font-bold mb-4">Quick Setup Instructions</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">1. Create GitHub Repository</h4>
+                                <p class="text-sm text-slate-400">Create a new repository on GitHub for your game data.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2">2. Upload Game Data</h4>
+                                <p class="text-sm text-slate-400">Export your game data and upload it to the repository.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2">3. Update Website</h4>
+                                <p class="text-sm text-slate-400">Update your website to fetch data from the GitHub repository.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Configure your admin panel preferences</p>
+                </div>
+                
+                <div class="glass-card p-5 sm:p-6">
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <h3 class="setting-title">General Settings</h3>
+                            <p class="setting-description">Configure basic admin panel preferences</p>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span>Dark Mode</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="dark-mode-toggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span>Email Notifications</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="email-notifications-toggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span>Auto-save Forms</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="autosave-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <h3 class="setting-title">Game Library</h3>
+                            <p class="setting-description">Manage how your game library behaves</p>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span>Auto-approve Games</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="auto-approve-toggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span>Show Download Counts</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="show-downloads-toggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span>Allow User Reviews</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="user-reviews-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <h3 class="setting-title">Backup & Export</h3>
+                            <p class="setting-description">Manage your data backup and export settings</p>
+                            
+                            <div class="space-y-4">
+                                <button class="btn-secondary w-full" id="export-data-btn">
+                                    <i data-lucide="download"></i>
+                                    Export Game Data
+                                </button>
+                                
+                                <button class="btn-secondary w-full" id="import-data-btn">
+                                    <i data-lucide="upload"></i>
+                                    Import Game Data
+                                </button>
+                                
+                                <button class="btn-secondary w-full" id="create-backup-btn">
+                                    <i data-lucide="database"></i>
+                                    Create Backup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <h3 class="setting-title">Admin Users</h3>
+                            <p class="setting-description">Manage users with admin access</p>
+                            
+                            <div class="space-y-4">
+                                <button class="btn-secondary w-full" id="add-admin-btn">
+                                    <i data-lucide="user-plus"></i>
+                                    Add New Admin
+                                </button>
+                                
+                                <div id="admin-users-list">
+                                    <!-- Admin users will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help & Support Tab -->
+            <div id="help" class="tab-content">
+                <div class="page-header">
+                    <h1 class="page-title">Help & Support</h1>
+                    <p class="page-subtitle">Get help with using the GameHub Pro admin panel</p>
+                </div>
+                
+                <div class="glass-card p-5 sm:p-6">
+                    <div class="help-grid">
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="book-open" class="w-5 h-5 text-red-500"></i>
+                                Documentation
+                            </h3>
+                            <p class="help-description">
+                                Browse our comprehensive documentation to learn how to use all features of the GameHub Pro admin panel.
+                            </p>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="video" class="w-5 h-5 text-red-500"></i>
+                                Video Tutorials
+                            </h3>
+                            <p class="help-description">
+                                Watch step-by-step video tutorials that guide you through common tasks and advanced features.
+                            </p>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="message-circle" class="w-5 h-5 text-red-500"></i>
+                                Community Forum
+                            </h3>
+                            <p class="help-description">
+                                Join our community forum to ask questions, share tips, and connect with other GameHub Pro users.
+                            </p>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="mail" class="w-5 h-5 text-red-500"></i>
+                                Contact Support
+                            </h3>
+                            <p class="help-description">
+                                Can't find what you're looking for? Contact our support team for personalized assistance.
+                            </p>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="download" class="w-5 h-5 text-red-500"></i>
+                                API Documentation
+                            </h3>
+                            <p class="help-description">
+                                Learn how to integrate GameHub Pro with your existing systems using our comprehensive API.
+                            </p>
+                        </div>
+                        
+                        <div class="help-card">
+                            <h3 class="help-title">
+                                <i data-lucide="refresh-cw" class="w-5 h-5 text-red-500"></i>
+                                Updates & Changelog
+                            </h3>
+                            <p class="help-description">
+                                Stay informed about the latest features, improvements, and bug fixes in GameHub Pro.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-6 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-medium mb-1">How do I add a new game?</h4>
+                                <p class="text-sm text-slate-400">Go to the "Add Game" tab, fill in the required information, and click "Generate Game Code".</p>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-1">Can I edit existing games?</h4>
+                                <p class="text-sm text-slate-400">Yes, go to the "Game Library" tab, find the game you want to edit, and click the "Edit" button.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-1">How do I export my game data?</h4>
+                                <p class="text-sm text-slate-400">In the "Game Library" tab, click the "Export" button to download your game data as a JSON file.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('open');
+        });
+        
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+        });
+        
+        // Tab switching functionality
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        function switchTab(tabId) {
+            // Update active nav item
+            navItems.forEach(item => {
+                if (item.getAttribute('data-tab') === tabId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Show active content
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // If switching to manage games, render the list
+            if (tabId === 'manage-games') {
+                renderGamesList();
+            }
+            
+            // Close mobile menu if open
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+        }
+        
+        // Add event listeners to nav items
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const tabId = item.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+        
+        // Add event listeners to quick action buttons
+        document.querySelectorAll('[data-tab]').forEach(button => {
+            if (button.classList.contains('btn-primary') || button.classList.contains('btn-secondary')) {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            }
+        });
+        
+        // Sample data for demonstration (matching the website structure)
+        let games = [
+            { id: 1, title: 'BeamNG.drive Mobile', category: 'Simulation', rating: 4.6, image: 'https://image.winudf.com/v2/image1/Z21lby5iZWFtbmdfaWNvbl8xNjY0NjEwMTQ3XzA5MA/icon.webp?w=280&fakeurl=1&type=.webp', featuredImage: 'https://static-sg.winudf.com/wupload/xy/aprojectadmin/nzIYDtql.png?imageMogr2/thumbnail/384x216', description: 'Realistic, immersive driving game offering near-limitless possibilities.', featured: true, size: '1.5 GB', os: 'Android', mode: 'Single Player', downloads: '1M+', screenshots: ['https://image.winudf.com/v2/image1/Z21lby5iZWFtbmdfc2NyZWVuXzBfMTY2NDYxMDE0N18wMjQ/screen-0.webp?h=300&fakeurl=1&type=.webp'], downloadLink: '#' },
+            // ... (other games remain the same)
+        ];
+        
+        // Admin users data
+        let adminUsers = [
+            { id: 1, name: "John Doe", email: "john@gamehub.com", role: "Admin", avatar: "JD" },
+            { id: 2, name: "Jane Smith", email: "jane@gamehub.com", role: "Editor", avatar: "JS" },
+            { id: 3, name: "Mike Johnson", email: "mike@gamehub.com", role: "Viewer", avatar: "MJ" }
+        ];
+        
+        // Recent activity data
+        let recentActivity = [
+            { type: "add", game: "Subway Surfers", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+            { type: "edit", game: "Clash of Clans", timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+            { type: "export", description: "Game data exported", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) }
+        ];
+        
+        // Update dashboard stats
+        function updateDashboardStats() {
+            const totalGames = games.length;
+            const featuredGames = games.filter(game => game.featured).length;
+            const totalDownloads = games.reduce((sum, game) => {
+                // Convert download strings to numbers for calculation
+                let downloads = 0;
+                if (game.downloads.includes('B')) {
+                    downloads = parseFloat(game.downloads) * 1000000000;
+                } else if (game.downloads.includes('M')) {
+                    downloads = parseFloat(game.downloads) * 1000000;
+                } else if (game.downloads.includes('K')) {
+                    downloads = parseFloat(game.downloads) * 1000;
+                } else {
+                    downloads = parseFloat(game.downloads);
+                }
+                return sum + downloads;
+            }, 0);
+            
+            // Format total downloads for display
+            let formattedDownloads;
+            if (totalDownloads >= 1000000000) {
+                formattedDownloads = (totalDownloads / 1000000000).toFixed(1) + 'B';
+            } else if (totalDownloads >= 1000000) {
+                formattedDownloads = (totalDownloads / 1000000).toFixed(1) + 'M';
+            } else if (totalDownloads >= 1000) {
+                formattedDownloads = (totalDownloads / 1000).toFixed(1) + 'K';
+            } else {
+                formattedDownloads = totalDownloads.toString();
+            }
+            
+            const avgRating = (games.reduce((sum, game) => sum + game.rating, 0) / games.length).toFixed(1);
+            
+            document.getElementById('total-games').textContent = totalGames;
+            document.getElementById('featured-games').textContent = featuredGames;
+            document.getElementById('total-downloads').textContent = formattedDownloads;
+            document.getElementById('avg-rating').textContent = avgRating;
+        }
+        
+        // Render recent activity
+        function renderRecentActivity() {
+            const activityContainer = document.getElementById('recent-activity');
+            activityContainer.innerHTML = '';
+            
+            recentActivity.forEach(activity => {
+                let icon, color, text;
+                
+                if (activity.type === 'add') {
+                    icon = 'plus';
+                    color = 'purple';
+                    text = `New game added: ${activity.game}`;
+                } else if (activity.type === 'edit') {
+                    icon = 'edit';
+                    color = 'blue';
+                    text = `Game updated: ${activity.game}`;
+                } else if (activity.type === 'export') {
+                    icon = 'download';
+                    color = 'green';
+                    text = activity.description;
+                }
+                
+                const timeAgo = getTimeAgo(activity.timestamp);
+                
+                const activityElement = document.createElement('div');
+                activityElement.className = 'flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg';
+                activityElement.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-${color}-500/20 flex items-center justify-center">
+                        <i data-lucide="${icon}" class="w-5 h-5 text-${color}-500"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">${text}</p>
+                        <p class="text-sm text-slate-400">${timeAgo}</p>
+                    </div>
+                `;
+                activityContainer.appendChild(activityElement);
+            });
+            
+            lucide.createIcons();
+        }
+        
+        // Helper function to get time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minutes ago`;
+            if (diffHours < 24) return `${diffHours} hours ago`;
+            return `${diffDays} days ago`;
+        }
+        
+        // Render games list
+        function renderGamesList() {
+            const gamesList = document.getElementById('games-list');
+            gamesList.innerHTML = '';
+            
+            if (games.length === 0) {
+                gamesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i data-lucide="package" class="w-8 h-8 text-red-500"></i>
+                        </div>
+                        <h3 class="font-medium mb-1">No games found</h3>
+                        <p class="text-sm">Try adjusting your search or add a new game!</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            games.forEach(game => {
+                const gameElement = document.createElement('div');
+                gameElement.className = 'game-list-item';
+                gameElement.innerHTML = `
+                    <div class="game-info">
+                        <img src="${game.image}" alt="${game.title}" class="game-image">
+                        <div class="game-details">
+                            <div class="game-title">${game.title}</div>
+                            <div class="game-meta">
+                                <span>${game.category}</span>
+                                <span>•</span>
+                                <span>${game.os}</span>
+                                <span>•</span>
+                                <div class="game-rating">
+                                    <i data-lucide="star" class="w-3 h-3 fill-yellow-400 text-yellow-400"></i>
+                                    <span>${game.rating}</span>
+                                </div>
+                                ${game.featured ? '<span class="featured-badge">Featured</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn edit-btn" data-id="${game.id}">
+                            <i data-lucide="edit" class="w-4 h-4"></i>
+                            Edit
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${game.id}">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Delete
+                        </button>
+                    </div>
+                `;
+                gamesList.appendChild(gameElement);
+            });
+            
+            // Update games count
+            document.getElementById('games-count').textContent = `Total: ${games.length} game${games.length !== 1 ? 's' : ''}`;
+            
+            // Reinitialize icons
+            lucide.createIcons();
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const gameId = parseInt(e.currentTarget.getAttribute('data-id'));
+                    editGame(gameId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const gameId = parseInt(e.currentTarget.getAttribute('data-id'));
+                    deleteGame(gameId);
+                });
+            });
+        }
+        
+        // Edit game function
+        function editGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+            
+            // Switch to add game tab
+            switchTab('add-game');
+            
+            // Fill form with game data
+            document.getElementById('title').value = game.title;
+            document.getElementById('category').value = game.category;
+            document.getElementById('rating').value = game.rating;
+            document.getElementById('image').value = game.image;
+            document.getElementById('featuredImage').value = game.featuredImage || '';
+            document.getElementById('description').value = game.description;
+            document.getElementById('featured').checked = game.featured;
+            document.getElementById('size').value = game.size;
+            document.getElementById('os').value = game.os;
+            document.getElementById('mode').value = game.mode;
+            document.getElementById('downloads').value = game.downloads;
+            document.getElementById('downloadLink').value = game.downloadLink;
+            
+            // Fill screenshots
+            for (let i = 0; i < 5; i++) {
+                const screenshotInput = document.getElementById(`screenshot${i+1}`);
+                screenshotInput.value = game.screenshots[i] || '';
+            }
+            
+            // Update submit button text
+            document.getElementById('submit-text').textContent = 'Update Game';
+            
+            // Store the game ID for updating
+            document.getElementById('add-game-form').setAttribute('data-edit-id', gameId);
+            
+            showToast(`Editing "${game.title}"`);
+        }
+        
+        // Delete game function
+        function deleteGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+            
+            if (confirm(`Are you sure you want to delete "${game.title}"?`)) {
+                games = games.filter(g => g.id !== gameId);
+                localStorage.setItem('gamehub-games', JSON.stringify(games));
+                
+                // Add to recent activity
+                recentActivity.unshift({
+                    type: 'delete',
+                    game: game.title,
+                    timestamp: new Date()
+                });
+                
+                renderGamesList();
+                updateDashboardStats();
+                renderRecentActivity();
+                showToast(`"${game.title}" has been deleted`);
+            }
+        }
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Form submission handler
+        const form = document.getElementById('add-game-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            submitBtn.disabled = true;
+            submitText.innerHTML = '<span class="loading"></span> Generating...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Create new game object
+                const newGame = {
+                    id: Date.now(),
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    rating: parseFloat(document.getElementById('rating').value),
+                    image: document.getElementById('image').value,
+                    featuredImage: document.getElementById('featuredImage').value,
+                    description: document.getElementById('description').value,
+                    featured: document.getElementById('featured').checked,
+                    size: document.getElementById('size').value,
+                    os: document.getElementById('os').value,
+                    mode: document.getElementById('mode').value,
+                    downloads: document.getElementById('downloads').value,
+                    screenshots: [
+                        document.getElementById('screenshot1').value,
+                        document.getElementById('screenshot2').value,
+                        document.getElementById('screenshot3').value,
+                        document.getElementById('screenshot4').value,
+                        document.getElementById('screenshot5').value
+                    ].filter(url => url.trim() !== ''),
+                    downloadLink: document.getElementById('downloadLink').value,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Check if we're editing an existing game
+                const editId = form.getAttribute('data-edit-id');
+                if (editId) {
+                    // Update existing game
+                    const gameIndex = games.findIndex(g => g.id === parseInt(editId));
+                    if (gameIndex !== -1) {
+                        games[gameIndex] = { ...games[gameIndex], ...newGame, id: parseInt(editId) };
+                        form.removeAttribute('data-edit-id');
+                        
+                        // Add to recent activity
+                        recentActivity.unshift({
+                            type: 'edit',
+                            game: newGame.title,
+                            timestamp: new Date()
+                        });
+                        
+                        showToast('Game updated successfully!');
+                    }
+                } else {
+                    // Add new game
+                    games.push(newGame);
+                    
+                    // Add to recent activity
+                    recentActivity.unshift({
+                        type: 'add',
+                        game: newGame.title,
+                        timestamp: new Date()
+                    });
+                    
+                    showToast('Game added successfully!');
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('gamehub-games', JSON.stringify(games));
+                
+                // Generate code
+                const codeString = JSON.stringify(newGame, null, 4);
+                document.getElementById('output-code').textContent = codeString + ',';
+                document.getElementById('output-section').classList.remove('hidden');
+                
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = 'Generate Game Code';
+                
+                // Update dashboard stats and activity
+                updateDashboardStats();
+                renderRecentActivity();
+                
+                // Scroll to output
+                document.getElementById('output-section').scrollIntoView({ behavior: 'smooth' });
+            }, 1500);
+        });
+        
+        // Copy code to clipboard
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const code = document.getElementById('output-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                document.getElementById('copy-text').textContent = 'Copied!';
+                setTimeout(() => {
+                    document.getElementById('copy-text').textContent = 'Copy';
+                }, 2000);
+                showToast('Code copied to clipboard!');
+            });
+        });
+        
+        // Export functionality
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const dataStr = JSON.stringify(games, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `gamehub-games-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // Add to recent activity
+            recentActivity.unshift({
+                type: 'export',
+                description: 'Game data exported',
+                timestamp: new Date()
+            });
+            renderRecentActivity();
+            
+            showToast('Games exported successfully!');
+        });
+        
+        // Import functionality
+        document.getElementById('import-btn').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = event => {
+                    try {
+                        const importedGames = JSON.parse(event.target.result);
+                        if (Array.isArray(importedGames)) {
+                            games = importedGames;
+                            localStorage.setItem('gamehub-games', JSON.stringify(games));
+                            renderGamesList();
+                            updateDashboardStats();
+                            
+                            // Add to recent activity
+                            recentActivity.unshift({
+                                type: 'import',
+                                description: 'Game data imported',
+                                timestamp: new Date()
+                            });
+                            renderRecentActivity();
+                            
+                            showToast('Games imported successfully!');
+                        } else {
+                            showToast('Invalid file format', 'error');
+                        }
+                    } catch (error) {
+                        showToast('Error importing games', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        });
+        
+        // Search functionality
+        document.getElementById('search-games').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredGames = games.filter(game => 
+                game.title.toLowerCase().includes(searchTerm) ||
+                game.category.toLowerCase().includes(searchTerm) ||
+                game.description.toLowerCase().includes(searchTerm)
+            );
+            
+            // For demo purposes, we'll just re-render with filtered results
+            // In a real app, you would update the games list with filtered results
+            if (searchTerm) {
+                showToast(`Found ${filteredGames.length} games matching "${searchTerm}"`);
+            }
+        });
+        
+        // Form reset handler
+        form.addEventListener('reset', () => {
+            // Clear any errors
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.form-input').forEach(el => {
+                el.classList.remove('error');
+            });
+            
+            // Reset submit button text if it was in edit mode
+            if (form.hasAttribute('data-edit-id')) {
+                form.removeAttribute('data-edit-id');
+                document.getElementById('submit-text').innerHTML = '<i data-lucide="code"></i> Generate Game Code';
+                lucide.createIcons();
+            }
+            
+            showToast('Form cleared');
+        });
+        
+        // Settings toggle handlers
+        document.getElementById('dark-mode-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'Dark mode enabled' : 'Dark mode disabled');
+        });
+        
+        document.getElementById('email-notifications-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'Email notifications enabled' : 'Email notifications disabled');
+        });
+        
+        document.getElementById('autosave-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'Auto-save enabled' : 'Auto-save disabled');
+        });
+        
+        document.getElementById('auto-approve-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'Auto-approve enabled' : 'Auto-approve disabled');
+        });
+        
+        document.getElementById('show-downloads-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'Download counts visible' : 'Download counts hidden');
+        });
+        
+        document.getElementById('user-reviews-toggle').addEventListener('change', function() {
+            showToast(this.checked ? 'User reviews enabled' : 'User reviews disabled');
+        });
+        
+        // Add admin modal functionality
+        const addAdminModal = document.getElementById('add-admin-modal');
+        const addAdminBtn = document.getElementById('add-admin-btn');
+        const closeAddAdminModal = document.getElementById('close-add-admin-modal');
+        const cancelAddAdmin = document.getElementById('cancel-add-admin');
+        const addAdminForm = document.getElementById('add-admin-form');
+        
+        addAdminBtn.addEventListener('click', () => {
+            addAdminModal.classList.add('open');
+        });
+        
+        closeAddAdminModal.addEventListener('click', () => {
+            addAdminModal.classList.remove('open');
+        });
+        
+        cancelAddAdmin.addEventListener('click', () => {
+            addAdminModal.classList.remove('open');
+        });
+        
+        addAdminForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('admin-name').value;
+            const email = document.getElementById('admin-email').value;
+            const role = document.getElementById('admin-role').value;
+            
+            const newAdmin = {
+                id: Date.now(),
+                name,
+                email,
+                role,
+                avatar: name.split(' ').map(n => n[0]).join('').toUpperCase()
+            };
+            
+            adminUsers.push(newAdmin);
+            renderAdminUsers();
+            addAdminModal.classList.remove('open');
+            addAdminForm.reset();
+            
+            showToast(`Admin ${name} added successfully!`);
+        });
+        
+        // GitHub Integration functionality
+        document.getElementById('generate-github-code').addEventListener('click', () => {
+            showToast('Generating GitHub-ready code...');
+            // This would generate code formatted for GitHub
+            const githubCode = JSON.stringify(games, null, 2);
+            document.getElementById('output-code').textContent = githubCode;
+            document.getElementById('output-section').classList.remove('hidden');
+        });
+        
+        document.getElementById('view-github-repo').addEventListener('click', () => {
+            window.open('https://github.com/elallioui/gamehub-pro-data', '_blank');
+        });
+        
+        document.getElementById('open-gamehub-repo').addEventListener('click', () => {
+            window.open('https://github.com/elallioui/gamehub-pro-data', '_blank');
+        });
+        
+        document.getElementById('open-admin-repo').addEventListener('click', () => {
+            window.open('https://github.com/elallioui/gamehub-pro-admin', '_blank');
+        });
+        
+        document.getElementById('copy-game-data-url').addEventListener('click', () => {
+            navigator.clipboard.writeText('https://raw.githubusercontent.com/elallioui/gamehub-pro-data/main/games-data.json');
+            showToast('Game data URL copied to clipboard!');
+        });
+        
+        document.getElementById('copy-admin-url').addEventListener('click', () => {
+            navigator.clipboard.writeText('https://elallioui.github.io/gamehub-pro-admin');
+            showToast('Admin panel URL copied to clipboard!');
+        });
+        
+        // Render admin users
+        function renderAdminUsers() {
+            const adminList = document.getElementById('admin-users-list');
+            adminList.innerHTML = '';
+            
+            adminUsers.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.className = 'admin-user-card';
+                userElement.innerHTML = `
+                    <div class="admin-avatar">${user.avatar}</div>
+                    <div class="admin-details">
+                        <div class="admin-name">${user.name}</div>
+                        <div class="admin-role">${user.role} • ${user.email}</div>
+                    </div>
+                    <div class="admin-actions">
+                        <button class="action-btn edit-btn" data-user-id="${user.id}">
+                            <i data-lucide="edit" class="w-4 h-4"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-user-id="${user.id}">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                adminList.appendChild(userElement);
+            });
+            
+            lucide.createIcons();
+        }
+        
+        // Load games from localStorage if available
+        const savedGames = localStorage.getItem('gamehub-games');
+        if (savedGames) {
+            games = JSON.parse(savedGames);
+        }
+        
+        // Initialize the page
+        updateDashboardStats();
+        renderRecentActivity();
+        renderGamesList();
+        renderAdminUsers();
+    </script>
+</body>
+</html>
